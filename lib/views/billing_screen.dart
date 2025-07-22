@@ -14,6 +14,7 @@ class BillingScreen extends StatefulWidget {
 class _BillingScreenState extends State<BillingScreen> {
   final _itemController = TextEditingController();
   final _amountController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -32,6 +33,7 @@ class _BillingScreenState extends State<BillingScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Sale added successfully')),
             );
+            _formKey.currentState?.reset();
             _itemController.clear();
             _amountController.clear();
           } else if (state is SaleError) {
@@ -49,98 +51,110 @@ class _BillingScreenState extends State<BillingScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 40),
-                      Image.asset('assets/home_image.png'),
-                      const SizedBox(height: 20),
-                      //field for item
-                      TextFormField(
-                        decoration: const InputDecoration(
-                          labelText: 'Item Name',
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 40),
+                        Image.asset('assets/home_image.png'),
+                        const SizedBox(height: 20),
+                        // Field for item
+                        TextFormField(
+                          decoration: const InputDecoration(
+                            labelText: 'Item Name',
+                          ),
+                          controller: _itemController,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Please enter item name';
+                            }
+                            return null;
+                          },
                         ),
-                        controller: _itemController,
-                      ),
-                      const SizedBox(height: 16),
-                      //field for the amount
-                      TextFormField(
-                        decoration: const InputDecoration(labelText: 'Amount'),
-                        controller: _amountController,
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 20),
-                      //Button for the add sale
-                      ElevatedButton(
-                        onPressed: () {
-                          if (_itemController.text.isNotEmpty &&
-                              _amountController.text.isNotEmpty) {
-                            context.read<SaleBloc>().add(
-                              AddSale(
-                                _itemController.text,
-                                double.parse(_amountController.text),
-                              ),
-                            );
-                            _itemController.clear();
-                            _amountController.clear();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Sale added successfully'),
-                              ),
-                            );
-                          }
-                        },
-                        child: const Text('Add Sale'),
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          //button for the sales list
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const SalesListScreen(),
-                                  ),
-                                );
-                              },
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.list),
-                                  Text('Sales List'),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            //Button for the attendance
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const AttendanceScreen(),
-                                  ),
-                                );
-                              },
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.person),
-                                  Text('Attendance'),
-                                ],
+                        const SizedBox(height: 16),
+                        // Field for amount
+                        TextFormField(
+                          decoration:
+                              const InputDecoration(labelText: 'Amount'),
+                          controller: _amountController,
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Please enter amount';
+                            }
+                            final parsed = double.tryParse(value);
+                            if (parsed == null || parsed <= 0) {
+                              return 'Enter a valid amount';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        // Add Sale button
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_formKey.currentState!.validate()) {
+                              context.read<SaleBloc>().add(
+                                    AddSale(
+                                      _itemController.text.trim(),
+                                      double.parse(_amountController.text),
+                                    ),
+                                  );
+                            }
+                          },
+                          child: const Text('Add Sale'),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            // Sales List button
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const SalesListScreen(),
+                                    ),
+                                  );
+                                },
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.list),
+                                    Text('Sales List'),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                            const SizedBox(width: 16),
+                            // Attendance button
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const AttendanceScreen(),
+                                    ),
+                                  );
+                                },
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.person),
+                                    Text('Attendance'),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
