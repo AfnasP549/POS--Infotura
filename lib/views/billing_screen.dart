@@ -75,8 +75,9 @@ class _BillingScreenState extends State<BillingScreen> {
                         const SizedBox(height: 16),
                         // Field for amount
                         TextFormField(
-                          decoration:
-                              const InputDecoration(labelText: 'Amount'),
+                          decoration: const InputDecoration(
+                            labelText: 'Amount',
+                          ),
                           controller: _amountController,
                           keyboardType: TextInputType.number,
                           validator: (value) {
@@ -96,13 +97,17 @@ class _BillingScreenState extends State<BillingScreen> {
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
                               context.read<SaleBloc>().add(
-                                    AddSale(
-                                      _itemController.text.trim(),
-                                      double.parse(_amountController.text),
-                                    ),
-                                  );
+                                AddSale(
+                                  _itemController.text.trim(),
+                                  double.parse(_amountController.text),
+                                ),
+                              );
+                              _formKey.currentState?.reset();
+                              _itemController.clear();
+                              _amountController.clear();
                             }
                           },
+
                           child: const Text('Add Sale'),
                         ),
                         const SizedBox(height: 20),
